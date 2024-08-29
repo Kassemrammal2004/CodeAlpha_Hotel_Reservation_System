@@ -1,0 +1,205 @@
+package testing;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class HotelReservationSystem {
+    public class Room {
+        private String type;
+        private int number;
+        private boolean availability;
+        private double price_per_night;
+
+        public Room(int roomNum, String roomType, double pricePerNight) {
+            number = roomNum;
+            type = roomType;
+            price_per_night = pricePerNight;
+            availability = true;
+        }
+
+        public int getRoomNum() {
+            return number;
+        }
+
+        public String getRoomType() {
+            return type;
+        }
+
+        public boolean isAvailable() {
+            return availability;
+        }
+
+        public void setAvailability(boolean available) {
+            availability = available;
+        }
+
+        public double getPrice_per_night() {
+            return price_per_night;
+        }
+
+
+        @Override
+        public String toString() {
+            return "Room of" +
+                    " type '" + type + '\'' +
+                    ", number: " + number +
+                    ", price_per_night: " + price_per_night +
+                    " & availability: " + availability;
+        }
+    }
+
+    public class User {
+        private String userName;
+        private String userEmail;
+        private int userID;
+
+        public User(String Name, String email, int id) {
+            userName = Name;
+            userEmail = email;
+            userID = id;
+        }
+        @Override
+        public String toString() {
+            return "User{" +
+                    "userName='" + userName + '\'' +
+                    ", userEmail='" + userEmail + '\'' +
+                    ", userID=" + userID +
+                    '}';
+        }
+    }
+
+    public class Booking {
+        private User user;
+        private Room room;
+        private LocalDate dayIn;
+        private LocalDate dayOut;
+
+        public Booking(User user, Room room, LocalDate dayIn, LocalDate dayOut) {
+            this.user = user;
+            this.room = room;
+            this.dayIn = dayIn;
+            this.dayOut = dayOut;
+            this.room.setAvailability(false);
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public Room getRoom() {
+            return room;
+        }
+
+        public LocalDate getDayIn() {
+            return dayIn;
+        }
+
+        public LocalDate getDayOut() {
+            return dayOut;
+        }
+        public double calculateTotalCost() {
+            return room.getPrice_per_night() * (dayOut.toEpochDay() - dayIn.toEpochDay());
+        }
+        @Override
+        public String toString() {
+            return "This user: "+user+" take this room: "+room.toString()+" from this day "+dayIn+" to this day "+dayOut;
+        }
+    }
+
+    public class Hotel {
+        private List<Room> rooms = new ArrayList<>();
+        private List<Booking> bookings = new ArrayList<>();
+
+        public void addRoom(Room room) {
+            rooms.add(room);
+        }
+        public Room availableRoom(String type) {
+            for (Room room : rooms) {
+                if (room.isAvailable() && room.getRoomType().equalsIgnoreCase(type)) {
+                    return room;
+                }
+            }
+            return null;
+        }
+        public void print_available_room() {
+            for(Room r:rooms) {
+                System.out.println(r.toString());
+            }
+        }
+
+        public Booking makeAppointment(User user, String roomType,LocalDate dayIn, LocalDate dayOut) {
+            Room room = availableRoom(roomType);
+            if(room!=null) {
+                Booking booking = new Booking(user, room, dayIn, dayOut);
+                bookings.add(booking);
+                return booking;
+            }
+            else {
+                System.out.println("No available room!!");
+                return null;
+            }
+        }
+        public void viewBooking(User user) {
+            for (Booking b:bookings) {
+                if(b.getUser().equals(user)) {
+                    System.out.println("Room " + b.getRoom().getRoomNum() + " from " + b.getDayIn() + " to " + b.getDayOut());
+                }
+            }
+        }
+    }
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("!! Welcome to the 5 stars hotel 'Deweir Hotel' !!");
+        HotelReservationSystem Hotel_System = new HotelReservationSystem();
+        Room r1 = Hotel_System.new Room(20,"Single",120);
+        Room r2 = Hotel_System.new Room(30,"Double",150);
+        Room r3 = Hotel_System.new Room(40,"Suite",200);
+        Room r4 = Hotel_System.new Room(50,"Presidential Suite",300);
+        Hotel hotel = Hotel_System.new Hotel();
+        hotel.addRoom(r1);
+        hotel.addRoom(r2);
+        hotel.addRoom(r3);
+        hotel.addRoom(r4);
+        try {
+            System.out.println("This is the details for the available Rooms: ");
+            hotel.print_available_room();
+            System.out.println();
+            System.out.println("Enter your name: ");
+            String name = scan.nextLine();
+            System.out.println("Enter your email: ");
+            String email = scan.next();
+            System.out.println("Enter your id: ");
+            int id = scan.nextInt();
+            scan.nextLine();
+            User user = Hotel_System.new User(name, email, id);
+            System.out.println("Enter your room type (Single, Double, Suite, Presidential Suite): ");
+            String type = scan.nextLine();
+            System.out.println("Enter check-in date (day/month/year): ");
+            int checkInDay = scan.nextInt();
+            int checkInMonth = scan.nextInt();
+            int checkInYear = scan.nextInt();
+            System.out.println("Enter check-out date (day/month/year): ");
+            int checkOutDay = scan.nextInt();
+            int checkOutMonth = scan.nextInt();
+            int checkOutYear = scan.nextInt();
+            LocalDate checkInDate = LocalDate.of(checkInYear, checkInMonth, checkInDay);
+            LocalDate checkOutDate = LocalDate.of(checkOutYear, checkOutMonth, checkOutDay);
+            Booking booking = hotel.makeAppointment(user, type, checkInDate, checkOutDate);
+            if (booking != null) {
+                System.out.println("Successful booking! Room " + booking.getRoom().getRoomNum() + " booked.");
+                System.out.println("Total cost: $" + booking.calculateTotalCost());
+            }
+            System.out.println("User Bookings: ");
+            hotel.viewBooking(user);
+        }
+        catch(NumberFormatException e){
+            System.out.println("Invalid Number!!");
+        }
+        catch(Exception e) {
+            System.out.println("There is something wrong!!");
+        }
+    }
+}
+
